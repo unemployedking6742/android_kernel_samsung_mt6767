@@ -97,6 +97,15 @@ print_msg "$GREEN" "Setting up KernelSU..."
 #patch -p1 -F 3 < ../patches/ksu_hooks.patch
 #print_msg "$GREEN" "Finished Patching up Kernel..."
 
+# ========================================
+# SETUP NOMOUNT (BUILT-IN)
+# ========================================
+print_msg "$GREEN" "Setting up NoMount..."
+
+curl -LSs "https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/kernel/setup.sh" | bash -
+
+print_msg "$GREEN" "NoMount setup complete."
+
 print_msg "$GREEN" "Generating configs..."
 
 python2 scripts/gen_build_config.py --kernel-defconfig a15_00_defconfig --kernel-defconfig-overlays entry_level.config -m user -o ../out/target/product/a15/obj/KERNEL_OBJ/build.config
