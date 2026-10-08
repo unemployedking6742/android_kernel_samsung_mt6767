@@ -75,6 +75,8 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val TCP_CONG_BIC y \
 --set-val DEFAULT_BBR y \
 --set-str DEFAULT_TCP_CONG "bbr" \
+
+#Mystuff
 --set-val IP_NF_TARGET_TTL y \
 --set-val IP6_NF_TARGET_HL y \
 --set-val IP6_NF_MATCH_HL y \
@@ -126,6 +128,29 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val PM_AUTOSLEEP y \
 --set-val WQ_POWER_EFFICIENT_DEFAULT y \
 --set-val BOEFFLA_WL_BLOCKER y
+
+# ========================================
+# DISABLE UNUSED DRIVERS
+# ========================================
+--set-val NFC n \
+--set-val NFC_DIGITAL n \
+--set-val NFC_NCI n \
+--set-val NFC_HCI n \
+--set-val SAMSUNG_NFC n \
+--set-val SEC_NFC n \
+--set-val NFC_PN547 n \
+--set-val NFC_FEATURE_SN100U n \
+--set-val NFC_PVDD_LATE_ENABLE n \
+--set-val SEC_NFC_LOGGER n \
+--set-val SEC_NFC_COMPAT_IOCTL n \
+--set-val NFC_ST21NFC n \
+--set-val NFC_ST54_SPI n \
+--set-val NFC_CHIP_SUPPORT n \
+--set-val IRTX_PWM_SUPPORT n \
+--set-val FMRADIO n \
+--set-val MTK_COMBO_ANT n \
+--set-val CAN n
+--set-val BT_HIDP n
 
 print_msg "$GREEN" "Modified configs ..."
 
