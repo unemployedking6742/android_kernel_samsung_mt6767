@@ -80,6 +80,15 @@ print_msg "$GREEN" "Modified configs ..."
 
 cd kernel-5.10
 
+# ========================================
+# SETUP KERNELSU-NEXT (BUILT-IN)
+# ========================================
+print_msg "$GREEN" "Setting up KernelSU-Next..."
+
+curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
+
+print_msg "$GREEN" "KernelSU-Next setup complete."
+
 print_msg "$GREEN" "Setting up KernelSU..."
 
 #print_msg "$GREEN" "Patching up Kernel..."
