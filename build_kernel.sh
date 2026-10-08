@@ -106,6 +106,9 @@ curl -LSs "https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/ke
 
 print_msg "$GREEN" "NoMount setup complete."
 
+# Ensure NoMount is enabled
+./kernel-5.10/scripts/config --file kernel-5.10/arch/arm64/configs/a15_00_defconfig --set-val NOMOUNT y
+
 print_msg "$GREEN" "Generating configs..."
 
 python2 scripts/gen_build_config.py --kernel-defconfig a15_00_defconfig --kernel-defconfig-overlays entry_level.config -m user -o ../out/target/product/a15/obj/KERNEL_OBJ/build.config
