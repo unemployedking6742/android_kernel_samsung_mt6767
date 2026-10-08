@@ -75,6 +75,57 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val TCP_CONG_BIC y \
 --set-val DEFAULT_BBR y \
 --set-str DEFAULT_TCP_CONG "bbr" \
+--set-val IP_NF_TARGET_TTL y \
+--set-val IP6_NF_TARGET_HL y \
+--set-val IP6_NF_MATCH_HL y \
+--set-val TCP_CONG_WESTWOOD y \
+--set-val TCP_CONG_HTCP y \
+--set-val IP_SET y \
+--set-val IP_SET_MAX 65534 \
+--set-val IP_SET_BITMAP_IP y \
+--set-val IP_SET_BITMAP_IPMAC y \
+--set-val IP_SET_BITMAP_PORT y \
+--set-val IP_SET_HASH_IP y \
+--set-val IP_SET_HASH_IPMARK y \
+--set-val IP_SET_HASH_IPPORT y \
+--set-val IP_SET_HASH_IPPORTIP y \
+--set-val IP_SET_HASH_IPPORTNET y \
+--set-val IP_SET_HASH_IPMAC y \
+--set-val IP_SET_HASH_MAC y \
+--set-val IP_SET_HASH_NETPORTNET y \
+--set-val IP_SET_HASH_NET y \
+--set-val IP_SET_HASH_NETNET y \
+--set-val IP_SET_HASH_NETPORT y \
+--set-val IP_SET_HASH_NETIFACE y \
+--set-val IP_SET_LIST_SET y \
+--set-val KALLSYMS y \
+--set-val TMPFS_POSIX_ACL y \
+--set-val ZSMALLOC y \
+--set-val CRYPTO_LZO y \
+--set-val CRYPTO_LZ4 y \
+--set-val CRYPTO_LZ4HC y
+--set-val DEBUG_KERNEL n \
+--set-val DEBUG_INFO n \
+--set-val DEBUG_INFO_DWARF4 n \
+--set-val DEBUG_INFO_REDUCED n \
+--set-val DEBUG_INFO_SPLIT n \
+--set-val DEBUG_INFO_BTF n \
+--set-val GDB_SCRIPTS n \
+--set-val MAGIC_SYSRQ n \
+--set-val FRAME_POINTER n \
+--set-val FTRACE n \
+--set-val FUNCTION_TRACER n \
+--set-val DYNAMIC_FTRACE n \
+--set-val STACK_TRACER n \
+--set-val BLK_DEV_IO_TRACE n
+--set-val CPU_IDLE y \
+--set-val CPU_IDLE_GOV_MENU y \
+--set-val CPU_IDLE_GOV_TEO y \
+--set-val PM_SLEEP y \
+--set-val PM_WAKELOCKS y \
+--set-val PM_AUTOSLEEP y \
+--set-val WQ_POWER_EFFICIENT_DEFAULT y \
+--set-val BOEFFLA_WL_BLOCKER y
 
 print_msg "$GREEN" "Modified configs ..."
 
