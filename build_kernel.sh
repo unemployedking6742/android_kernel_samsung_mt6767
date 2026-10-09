@@ -100,12 +100,7 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val IP_SET_HASH_NETPORT y \
 --set-val IP_SET_HASH_NETIFACE y \
 --set-val IP_SET_LIST_SET y \
---set-val KALLSYMS y \
 --set-val TMPFS_POSIX_ACL y \
---set-val ZSMALLOC y \
---set-val CRYPTO_LZO y \
---set-val CRYPTO_LZ4 y \
---set-val CRYPTO_LZ4HC y
 --set-val DEBUG_KERNEL n \
 --set-val DEBUG_INFO n \
 --set-val DEBUG_INFO_DWARF4 n \
@@ -120,14 +115,6 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val DYNAMIC_FTRACE n \
 --set-val STACK_TRACER n \
 --set-val BLK_DEV_IO_TRACE n
---set-val CPU_IDLE y \
---set-val CPU_IDLE_GOV_MENU y \
---set-val CPU_IDLE_GOV_TEO y \
---set-val PM_SLEEP y \
---set-val PM_WAKELOCKS y \
---set-val PM_AUTOSLEEP y \
---set-val WQ_POWER_EFFICIENT_DEFAULT y \
---set-val BOEFFLA_WL_BLOCKER y
 
 # ========================================
 # DISABLE UNUSED DRIVERS
