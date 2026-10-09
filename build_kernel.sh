@@ -5,30 +5,22 @@ RED="\e[1;31m"
 GREEN="\e[1;32m"
 RESET="\e[0m"
 
-# Print message function
 print_msg() {
     local COLOR=$1
     shift
     echo -e "${COLOR}$*${RESET}"
 }
 
-# Print runtime function
 print_runtime() {
-    # Calculate runtime in seconds
     runtime=$(($3 - $2))
-    
-    # Convert seconds to HH:MM:SS format
     hours=$((runtime / 3600))
     minutes=$(((runtime % 3600) / 60))
     seconds=$((runtime % 60))
-    
-    # Display runtime with proper formatting (zero-padded)
     printf "\e[1;32m$1: %02d:%02d:%02d\n" $hours $minutes $seconds
 }
 
 config_start_time=$(date +%s)
 
-# Script header
 print_msg "$GREEN" "\n - Build script for Samsung kernel image - "
 print_msg "$RED" "       by poqdavid \n"
 
@@ -36,7 +28,7 @@ print_msg "$RED" "       by poqdavid \n"
 
 print_msg "$GREEN" "Modifying configs..."
 
-# Samsung related configs like Kernel Protection
+# Samsung related configs like Kernel Protection (fragment-level, BEFORE merge)
 ./kernel-5.10/scripts/config --file kernel-5.10/arch/arm64/configs/a15_00_defconfig \
 --set-val UH n \
 --set-val RKP n \
@@ -52,7 +44,6 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val PROCA_CERT_ENG n \
 --set-val PROCA_CERT_USER n \
 --set-val GAF_V6 n \
---set-val FIVE n \
 --set-val FIVE_CERT_USER n \
 --set-val FIVE_DEFAULT_HASH n \
 --set-val UH_RKP n \
@@ -65,7 +56,7 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val KDP_TEST n \
 --set-val RKP_CRED n
 
-# Kernel optimizations
+# Kernel optimizations (fragment-level, BEFORE merge)
 ./kernel-5.10/scripts/config --file kernel-5.10/arch/arm64/configs/a15_00_defconfig \
 --set-val TMPFS_XATTR y \
 --set-val IP_NF_TARGET_TTL y \
@@ -74,9 +65,47 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val NET_SCH_FQ y \
 --set-val TCP_CONG_BIC y \
 --set-val DEFAULT_BBR y \
---set-str DEFAULT_TCP_CONG "bbr" \
+--set-str DEFAULT_TCP_CONG "bbr"
 
-#Mystuff
+print_msg "$GREEN" "Modified configs ..."
+
+cd kernel-5.10
+
+# ========================================
+# SETUP KERNELSU-NEXT
+# ========================================
+print_msg "$GREEN" "Setting up KernelSU-Next..."
+
+curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
+
+print_msg "$GREEN" "KernelSU-Next setup complete."
+
+# ========================================
+# SETUP NOMOUNT
+# ========================================
+print_msg "$GREEN" "Setting up NoMount..."
+
+curl -LSs "https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/kernel/setup.sh" | bash -
+
+print_msg "$GREEN" "NoMount setup complete."
+
+# ========================================
+# GENERATE MERGED CONFIG
+# ========================================
+print_msg "$GREEN" "Generating configs..."
+
+python2 scripts/gen_build_config.py --kernel-defconfig a15_00_defconfig --kernel-defconfig-overlays entry_level.config -m user -o ../out/target/product/a15/obj/KERNEL_OBJ/build.config
+
+print_msg "$GREEN" "Finished Generating configs..."
+
+# ========================================
+# APPLY CHANGES TO THE MERGED .config (AFTER merge)
+# ========================================
+print_msg "$GREEN" "Applying final config overrides to merged .config..."
+
+MERGED_CONFIG="../out/target/product/a15/obj/KERNEL_OBJ/.config"
+
+./kernel-5.10/scripts/config --file "$MERGED_CONFIG" \
 --set-val IP_NF_TARGET_TTL y \
 --set-val IP6_NF_TARGET_HL y \
 --set-val IP6_NF_MATCH_HL y \
@@ -114,11 +143,7 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val FUNCTION_TRACER n \
 --set-val DYNAMIC_FTRACE n \
 --set-val STACK_TRACER n \
---set-val BLK_DEV_IO_TRACE n
-
-# ========================================
-# DISABLE UNUSED DRIVERS
-# ========================================
+--set-val BLK_DEV_IO_TRACE n \
 --set-val NFC n \
 --set-val NFC_DIGITAL n \
 --set-val NFC_NCI n \
@@ -136,50 +161,13 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val IRTX_PWM_SUPPORT n \
 --set-val FMRADIO n \
 --set-val MTK_COMBO_ANT n \
---set-val CAN n
---set-val BT_HIDP n
+--set-val CAN n \
+--set-val BT_HIDP n \
+--set-val NOMOUNT y
 
-print_msg "$GREEN" "Modified configs ..."
-
-cd kernel-5.10
-
-# ========================================
-# SETUP KERNELSU-NEXT (BUILT-IN)
-# ========================================
-print_msg "$GREEN" "Setting up KernelSU-Next..."
-
-curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -
-
-print_msg "$GREEN" "KernelSU-Next setup complete."
-
-print_msg "$GREEN" "Setting up KernelSU..."
-
-#print_msg "$GREEN" "Patching up Kernel..."
-#patch -p1 -F 3 < ../patches/syscall_hooks.patch
-#patch -p1 -F 3 < ../patches/new_hooks.patch
-#patch -p1 -F 3 < ../patches/ksu_hooks.patch
-#print_msg "$GREEN" "Finished Patching up Kernel..."
-
-# ========================================
-# SETUP NOMOUNT (BUILT-IN)
-# ========================================
-print_msg "$GREEN" "Setting up NoMount..."
-
-curl -LSs "https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/kernel/setup.sh" | bash -
-
-print_msg "$GREEN" "NoMount setup complete."
-
-# Ensure NoMount is enabled
-./kernel-5.10/scripts/config --file kernel-5.10/arch/arm64/configs/a15_00_defconfig --set-val NOMOUNT y
-
-print_msg "$GREEN" "Generating configs..."
-
-python2 scripts/gen_build_config.py --kernel-defconfig a15_00_defconfig --kernel-defconfig-overlays entry_level.config -m user -o ../out/target/product/a15/obj/KERNEL_OBJ/build.config
-
-print_msg "$GREEN" "Finished Generating configs..."
+print_msg "$GREEN" "Final config overrides applied."
 
 config_end_time=$(date +%s)
-
 build_start_time=$(date +%s)
 
 export LTO=thin
@@ -203,6 +191,5 @@ build_end_time=$(date +%s)
 print_msg "$GREEN" "Finished Building Kernel..."
 
 echo " "
-
 print_runtime "Config runtime" config_start_time config_end_time
 print_runtime "Build runtime" build_start_time build_end_time
