@@ -136,6 +136,17 @@ cd ..
 print_msg "$GREEN" "WildKernels patches applied."
 
 # ========================================
+# APPLY BBRV3 PATCH
+# ========================================
+print_msg "$GREEN" "Applying BBRv3 patch..."
+
+curl -LSs "https://raw.githubusercontent.com/WildKernels/kernel_patches/main/common/bbrv3/0001-net-tcp-backport-BBRv3-to-android12-5.10.patch" -o /tmp/bbrv3.patch
+
+patch -p1 -F 3 < /tmp/bbrv3.patch || print_msg "$YELLOW" "BBRv3 patch failed or already applied"
+
+print_msg "$GREEN" "BBRv3 patch applied."
+
+# ========================================
 # SETUP KERNELSU-NEXT
 # ========================================
 print_msg "$GREEN" "Setting up KernelSU-Next..."
@@ -228,6 +239,9 @@ MERGED_CONFIG="../out/target/product/a15/obj/KERNEL_OBJ/.config"
 --set-val CAN n \
 --set-val BT_HIDP n \
 --set-val NOMOUNT y
+--set-val TCP_CONG_BBR3 y \
+--set-val DEFAULT_BBR3 y \
+--set-str DEFAULT_TCP_CONG "bbr3" \
 
 print_msg "$GREEN" "Final config overrides applied."
 
