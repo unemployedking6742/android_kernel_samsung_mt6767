@@ -58,6 +58,37 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val KDP_TEST n \
 --set-val RKP_CRED n
 
+# ========================================
+# TELEMETRY / DEBUG DISABLES
+# ========================================
+--set-val SAMSUNG_PRODUCT_SHIP n \
+--set-val SEC_DEBUG n \
+--set-val SEC_DEBUG_TSP_LOG n \
+--set-val SEC_DEBUG_LEVEL n \
+--set-val SEC_DEBUG_ENG n \
+--set-val SEC_DEBUG_USER n \
+--set-val SEC_LOG n \
+--set-val MTK_AEE_FEATURE n \
+--set-val MTK_AEE_AED n \
+--set-val MTK_AEE_HANGDET n \
+--set-val MTK_AEE_IPANIC n \
+--set-val MTK_AEE_UT n \
+--set-val MTK_DRAM_LOG_STORE n \
+--set-val MTK_LOAD_TRACKER n \
+--set-val MMSTAT_TRACER n \
+--set-val MTK_BLOCK_IO_TRACER n \
+--set-val MTK_MET n \
+--set-val MTPROF n \
+--set-val MTK_ATF_LOGGER n \
+--set-val MTK_PRINTK n \
+--set-val MTK_PRINTK_UART_CONSOLE n \
+--set-val MTK_HANG_DETECT n \
+--set-val MTK_HANG_DETECT_DB n \
+--set-val MTK_SUBPMIC_MISC n \
+--set-val MT6360_DBG n \
+--set-val MTK_IRQ_DBG n \
+--set-val MTK_DBGTOP n
+
 # Kernel optimizations (fragment-level, BEFORE merge)
 ./kernel-5.10/scripts/config --file kernel-5.10/arch/arm64/configs/a15_00_defconfig \
 --set-val TMPFS_XATTR y \
