@@ -34,6 +34,8 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val RKP n \
 --set-val KDP n \
 --set-val SECURITY_DEFEX n \
+--set-val SECURITY_DSMS n \
+--set-val SEC_NFC_LOGGER n \
 --set-val INTEGRITY n \
 --set-val FIVE n \
 --set-val TRIM_UNUSED_KSYMS n \
