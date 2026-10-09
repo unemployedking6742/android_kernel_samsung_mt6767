@@ -3,6 +3,7 @@
 # Color Variables
 RED="\e[1;31m"
 GREEN="\e[1;32m"
+YELLOW="\e[1;33m"
 RESET="\e[0m"
 
 print_msg() {
@@ -26,9 +27,11 @@ print_msg "$RED" "       by poqdavid \n"
 
 ./clean_build.sh
 
+# ========================================
+# STEP 1: SAMSUNG SECURITY DISABLES (FRAGMENT)
+# ========================================
 print_msg "$GREEN" "Modifying configs..."
 
-# Samsung related configs like Kernel Protection (fragment-level, BEFORE merge)
 ./kernel-5.10/scripts/config --file kernel-5.10/arch/arm64/configs/a15_00_defconfig \
 --set-val UH n \
 --set-val RKP n \
@@ -59,8 +62,9 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val RKP_CRED n
 
 # ========================================
-# TELEMETRY / DEBUG DISABLES
+# STEP 2: TELEMETRY / DEBUG DISABLES (FRAGMENT)
 # ========================================
+./kernel-5.10/scripts/config --file kernel-5.10/arch/arm64/configs/a15_00_defconfig \
 --set-val SAMSUNG_PRODUCT_SHIP n \
 --set-val SEC_DEBUG n \
 --set-val SEC_DEBUG_TSP_LOG n \
@@ -89,29 +93,28 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val MTK_IRQ_DBG n \
 --set-val MTK_DBGTOP n
 
-# Kernel optimizations (fragment-level, BEFORE merge)
+# ========================================
+# STEP 3: KERNEL OPTIMIZATIONS (FRAGMENT)
+# No BBRv3 here — patch not applied yet
+# ========================================
 ./kernel-5.10/scripts/config --file kernel-5.10/arch/arm64/configs/a15_00_defconfig \
 --set-val TMPFS_XATTR y \
 --set-val IP_NF_TARGET_TTL y \
 --set-val TCP_CONG_ADVANCED y \
---set-val TCP_CONG_BBR y \
 --set-val NET_SCH_FQ y \
---set-val TCP_CONG_BIC y \
---set-val DEFAULT_BBR y \
---set-str DEFAULT_TCP_CONG "bbr"
+--set-val TCP_CONG_BIC n \
+--set-val TCP_CONG_BBR n \
+--set-val DEFAULT_BBR n
 
 print_msg "$GREEN" "Modified configs ..."
 
 cd kernel-5.10
 
 # ========================================
-# APPLY WILDKERNELS OPTIMIZATION PATCHES
+# STEP 4: APPLY WILDKERNELS OPTIMIZATION PATCHES
 # ========================================
 print_msg "$GREEN" "Applying WildKernels patches..."
 
-cd kernel-5.10
-
-# Download patches
 PATCH_BASE="https://raw.githubusercontent.com/WildKernels/kernel_patches/main/common"
 
 for patch in \
@@ -131,23 +134,20 @@ for patch in \
     patch -p1 -F 3 < "/tmp/${patch}.patch" || true
 done
 
-cd ..
-
 print_msg "$GREEN" "WildKernels patches applied."
 
 # ========================================
-# APPLY BBRV3 PATCH
+# STEP 5: APPLY BBRV3 PATCH
 # ========================================
 print_msg "$GREEN" "Applying BBRv3 patch..."
 
 curl -LSs "https://raw.githubusercontent.com/WildKernels/kernel_patches/main/common/bbrv3/0001-net-tcp-backport-BBRv3-to-android12-5.10.patch" -o /tmp/bbrv3.patch
-
 patch -p1 -F 3 < /tmp/bbrv3.patch || print_msg "$YELLOW" "BBRv3 patch failed or already applied"
 
 print_msg "$GREEN" "BBRv3 patch applied."
 
 # ========================================
-# SETUP KERNELSU-NEXT
+# STEP 6: SETUP KERNELSU-NEXT
 # ========================================
 print_msg "$GREEN" "Setting up KernelSU-Next..."
 
@@ -156,7 +156,7 @@ curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/ke
 print_msg "$GREEN" "KernelSU-Next setup complete."
 
 # ========================================
-# SETUP NOMOUNT
+# STEP 7: SETUP NOMOUNT
 # ========================================
 print_msg "$GREEN" "Setting up NoMount..."
 
@@ -165,7 +165,7 @@ curl -LSs "https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/ke
 print_msg "$GREEN" "NoMount setup complete."
 
 # ========================================
-# GENERATE MERGED CONFIG
+# STEP 8: GENERATE MERGED CONFIG
 # ========================================
 print_msg "$GREEN" "Generating configs..."
 
@@ -174,13 +174,14 @@ python2 scripts/gen_build_config.py --kernel-defconfig a15_00_defconfig --kernel
 print_msg "$GREEN" "Finished Generating configs..."
 
 # ========================================
-# APPLY CHANGES TO THE MERGED .config (AFTER merge)
+# STEP 9: APPLY CHANGES TO THE MERGED .config
+# BBRv3 options now exist (patch applied)
 # ========================================
 print_msg "$GREEN" "Applying final config overrides to merged .config..."
 
 MERGED_CONFIG="../out/target/product/a15/obj/KERNEL_OBJ/.config"
 
-./kernel-5.10/scripts/config --file "$MERGED_CONFIG" \
+./scripts/config --file "$MERGED_CONFIG" \
 --set-val IP_NF_TARGET_TTL y \
 --set-val IP6_NF_TARGET_HL y \
 --set-val IP6_NF_MATCH_HL y \
@@ -238,10 +239,12 @@ MERGED_CONFIG="../out/target/product/a15/obj/KERNEL_OBJ/.config"
 --set-val MTK_COMBO_ANT n \
 --set-val CAN n \
 --set-val BT_HIDP n \
---set-val NOMOUNT y
+--set-val NOMOUNT y \
 --set-val TCP_CONG_BBR3 y \
 --set-val DEFAULT_BBR3 y \
 --set-str DEFAULT_TCP_CONG "bbr3" \
+--set-val TCP_CONG_BBR n \
+--set-val DEFAULT_BBR n
 
 print_msg "$GREEN" "Final config overrides applied."
 
