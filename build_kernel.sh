@@ -119,16 +119,16 @@ PATCH_BASE="https://raw.githubusercontent.com/WildKernels/kernel_patches/main/co
 
 for patch in \
     increase_sk_mem_packets \
-    mem_opt_prefetch \
-    optimise_memcmp \
-    optimized_mem_operations \
+    #mem_opt_prefetch \
+    #optimise_memcmp \
+    #optimized_mem_operations \
     reduce_cache_pressure \
     reduce_gc_thread_sleep_time \
     reduce_freeze_timeout \
     reduce_pci_pme_wakeups \
     minimise_wakeup_time \
-    silence_irq_cpu_logspam \
-    silence_system_logspam \
+    #silence_irq_cpu_logspam \
+    #silence_system_logspam \
     use_unlikely_wrap_cpufreq; do
     curl -LSs "$PATCH_BASE/${patch}.patch" -o "/tmp/${patch}.patch"
     patch -p1 -F 3 < "/tmp/${patch}.patch" || true
