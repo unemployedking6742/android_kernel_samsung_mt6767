@@ -104,6 +104,7 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val TCP_CONG_BIC n \
 --set-val TCP_CONG_BBR n \
 --set-val DEFAULT_BBR n
+--set-val WERROR n
 
 print_msg "$GREEN" "Modified configs ..."
 
