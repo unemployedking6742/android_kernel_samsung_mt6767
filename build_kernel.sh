@@ -176,6 +176,19 @@ find "drivers/misc/mediatek/eccci" -name "*.c" -exec sed -i \
 print_msg "$GREEN" "ECCCI fix applied to all files."
 
 # ========================================
+# FIX MISSING HEADERS IN MEDIATEK DRIVERS
+# ========================================
+print_msg "$GREEN" "Fixing missing headers in MediaTek drivers..."
+
+# perf_freq_tracker.c — add slab.h
+sed -i '1i #include <linux/slab.h>' "drivers/misc/mediatek/perf_common/perf_freq_tracker.c" || true
+
+# spmi-mtk-pmif-core.c — add aee.h
+sed -i '1i #include <linux/aee.h>' "drivers/spmi/spmi-mtk-pmif-core.c" || true
+
+print_msg "$GREEN" "Missing headers added."
+
+# ========================================
 # STEP 6: SETUP KERNELSU-NEXT
 # ========================================
 print_msg "$GREEN" "Setting up KernelSU-Next..."
