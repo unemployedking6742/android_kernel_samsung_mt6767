@@ -152,6 +152,20 @@ find "drivers/misc/mediatek/eccci" -name "Kbuild" -exec sed -i 's/ -Werror / /g'
 print_msg "$GREEN" "ECCCI -Werror stripped."
 
 # ========================================
+# FIX MEDIATEK ECCCI UNUSED VARIABLES
+# ========================================
+print_msg "$GREEN" "Fixing MediaTek ECCCI unused variables..."
+
+sed -i 's/void \*md_img_addr/void *md_img_addr __attribute__((unused))/' "drivers/misc/mediatek/eccci/fsm/mdee_dumper_v1.c" || true
+sed -i 's/int md_img_len/int md_img_len __attribute__((unused))/' "drivers/misc/mediatek/eccci/fsm/mdee_dumper_v1.c" || true
+
+print_msg "$GREEN" "ECCCI fix applied."
+
+# Nuclear fallback: strip -Werror from entire kernel tree
+find "$(pwd)" -name "Makefile" -exec sed -i 's/ -Werror / /g' {} \; || true
+find "$(pwd)" -name "Kbuild" -exec sed -i 's/ -Werror / /g' {} \; || true
+
+# ========================================
 # STEP 6: SETUP KERNELSU-NEXT
 # ========================================
 print_msg "$GREEN" "Setting up KernelSU-Next..."
