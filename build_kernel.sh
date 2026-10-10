@@ -156,6 +156,10 @@ find "drivers/misc/mediatek/eccci" -name "Kbuild" -exec sed -i 's/ -Werror / /g'
 
 print_msg "$GREEN" "ECCCI -Werror stripped."
 
+# Strip -Werror from ECCCI Makefile
+find "drivers/misc/mediatek/eccci" -name "Makefile" -exec sed -i 's/ -Werror / /g' {} \; || true
+find "drivers/misc/mediatek/eccci" -name "Kbuild" -exec sed -i 's/ -Werror / /g' {} \; || true
+
 # ========================================
 # STEP 6: SETUP KERNELSU-NEXT
 # ========================================
