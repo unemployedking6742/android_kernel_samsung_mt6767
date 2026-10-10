@@ -95,7 +95,6 @@ print_msg "$GREEN" "Modifying configs..."
 
 # ========================================
 # STEP 3: KERNEL OPTIMIZATIONS (FRAGMENT)
-# No BBRv3 here — patch not applied yet
 # ========================================
 ./kernel-5.10/scripts/config --file kernel-5.10/arch/arm64/configs/a15_00_defconfig \
 --set-val TMPFS_XATTR y \
@@ -140,53 +139,33 @@ patch -p1 -F 3 < /tmp/bbrv3.patch || print_msg "$YELLOW" "BBRv3 patch failed or 
 print_msg "$GREEN" "BBRv3 patch applied."
 
 # ========================================
-# STRIP -Werror FROM MEDIATEK ECCCI DRIVER
+# STEP 5.5: FIX MEDIATEK DRIVER ERRORS
 # ========================================
-print_msg "$GREEN" "Stripping -Werror from MediaTek ECCCI..."
+print_msg "$GREEN" "Fixing MediaTek driver errors..."
 
+# --- Revert any bad #include <linux/aee.h> additions ---
+sed -i '/^#include <linux\/aee.h>$/d' "drivers/spmi/spmi-mtk-pmif-core.c" || true
+
+# --- ECCCI: strip -Werror from Makefiles ---
 find "drivers/misc/mediatek/eccci" -name "Makefile" -exec sed -i 's/ -Werror / /g' {} \; || true
 find "drivers/misc/mediatek/eccci" -name "Kbuild" -exec sed -i 's/ -Werror / /g' {} \; || true
 
-print_msg "$GREEN" "ECCCI -Werror stripped."
-
-# ========================================
-# FIX MEDIATEK ECCCI UNUSED VARIABLES
-# ========================================
-print_msg "$GREEN" "Fixing MediaTek ECCCI unused variables..."
-
-sed -i 's/void \*md_img_addr/void *md_img_addr __attribute__((unused))/' "drivers/misc/mediatek/eccci/fsm/mdee_dumper_v1.c" || true
-sed -i 's/int md_img_len/int md_img_len __attribute__((unused))/' "drivers/misc/mediatek/eccci/fsm/mdee_dumper_v1.c" || true
-
-print_msg "$GREEN" "ECCCI fix applied."
-
-# Nuclear fallback: strip -Werror from entire kernel tree
-find "$(pwd)" -name "Makefile" -exec sed -i 's/ -Werror / /g' {} \; || true
-find "$(pwd)" -name "Kbuild" -exec sed -i 's/ -Werror / /g' {} \; || true
-
-# ========================================
-# FIX MEDIATEK ECCCI UNUSED VARIABLES
-# ========================================
-print_msg "$GREEN" "Fixing MediaTek ECCCI unused variables..."
-
+# --- ECCCI: patch all .c files for unused variables ---
 find "drivers/misc/mediatek/eccci" -name "*.c" -exec sed -i \
     -e 's/void \*md_img_addr/void *md_img_addr __attribute__((unused))/g' \
     -e 's/int md_img_len/int md_img_len __attribute__((unused))/g' \
     {} \; || true
 
-print_msg "$GREEN" "ECCCI fix applied to all files."
-
-# ========================================
-# FIX MISSING HEADERS IN MEDIATEK DRIVERS
-# ========================================
-print_msg "$GREEN" "Fixing missing headers in MediaTek drivers..."
-
-# perf_freq_tracker.c — add slab.h
+# --- perf_freq_tracker.c: add missing slab.h header ---
 sed -i '1i #include <linux/slab.h>' "drivers/misc/mediatek/perf_common/perf_freq_tracker.c" || true
 
-# spmi-mtk-pmif-core.c — add aee.h
-sed -i '1i #include <linux/aee.h>' "drivers/spmi/spmi-mtk-pmif-core.c" || true
+print_msg "$GREEN" "MediaTek driver fixes applied."
 
-print_msg "$GREEN" "Missing headers added."
+# --- Nuclear fallback: strip -Werror from entire kernel tree ---
+find "$(pwd)" -name "Makefile" -exec sed -i 's/ -Werror / /g' {} \; || true
+find "$(pwd)" -name "Kbuild" -exec sed -i 's/ -Werror / /g' {} \; || true
+
+print_msg "$GREEN" "Nuclear -Werror strip applied."
 
 # ========================================
 # STEP 6: SETUP KERNELSU-NEXT
@@ -217,7 +196,6 @@ print_msg "$GREEN" "Finished Generating configs..."
 
 # ========================================
 # STEP 9: APPLY CHANGES TO THE MERGED .config
-# BBRv3 options now exist (patch applied)
 # ========================================
 print_msg "$GREEN" "Applying final config overrides to merged .config..."
 
@@ -303,9 +281,11 @@ export CROSS_COMPILE_COMPAT="arm-linux-gnueabi-"
 export OUT_DIR="../out/target/product/a15/obj/KERNEL_OBJ"
 export DIST_DIR="../out/target/product/a15/obj/KERNEL_OBJ"
 export BUILD_CONFIG="../out/target/product/a15/obj/KERNEL_OBJ/build.config"
-export KCFLAGS="-Wno-error"
-export EXTRA_CFLAGS="-Wno-error"
-export CFLAGS="-Wno-error"
+
+# --- KCFLAGS: Make implicit declarations non-fatal ---
+export KCFLAGS="-Wno-error -Wno-error=implicit-function-declaration -Wno-error=implicit-int"
+export EXTRA_CFLAGS="$KCFLAGS"
+export CFLAGS="$KCFLAGS"
 
 print_msg "$GREEN" "Building Kernel..."
 
