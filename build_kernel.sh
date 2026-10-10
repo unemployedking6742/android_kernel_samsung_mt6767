@@ -119,12 +119,10 @@ PATCH_BASE="https://raw.githubusercontent.com/WildKernels/kernel_patches/main/co
 
 for patch in \
     increase_sk_mem_packets \
-    reduce_cache_pressure \
     reduce_gc_thread_sleep_time \
     reduce_freeze_timeout \
     reduce_pci_pme_wakeups \
-    minimise_wakeup_time \
-    use_unlikely_wrap_cpufreq; do
+    minimise_wakeup_time; do
     curl -LSs "$PATCH_BASE/${patch}.patch" -o "/tmp/${patch}.patch"
     patch -p1 -F 3 < "/tmp/${patch}.patch" || true
 done
@@ -164,6 +162,18 @@ print_msg "$GREEN" "ECCCI fix applied."
 # Nuclear fallback: strip -Werror from entire kernel tree
 find "$(pwd)" -name "Makefile" -exec sed -i 's/ -Werror / /g' {} \; || true
 find "$(pwd)" -name "Kbuild" -exec sed -i 's/ -Werror / /g' {} \; || true
+
+# ========================================
+# FIX MEDIATEK ECCCI UNUSED VARIABLES
+# ========================================
+print_msg "$GREEN" "Fixing MediaTek ECCCI unused variables..."
+
+find "drivers/misc/mediatek/eccci" -name "*.c" -exec sed -i \
+    -e 's/void \*md_img_addr/void *md_img_addr __attribute__((unused))/g' \
+    -e 's/int md_img_len/int md_img_len __attribute__((unused))/g' \
+    {} \; || true
+
+print_msg "$GREEN" "ECCCI fix applied to all files."
 
 # ========================================
 # STEP 6: SETUP KERNELSU-NEXT
@@ -280,6 +290,9 @@ export CROSS_COMPILE_COMPAT="arm-linux-gnueabi-"
 export OUT_DIR="../out/target/product/a15/obj/KERNEL_OBJ"
 export DIST_DIR="../out/target/product/a15/obj/KERNEL_OBJ"
 export BUILD_CONFIG="../out/target/product/a15/obj/KERNEL_OBJ/build.config"
+export KCFLAGS="-Wno-error"
+export EXTRA_CFLAGS="-Wno-error"
+export CFLAGS="-Wno-error"
 
 print_msg "$GREEN" "Building Kernel..."
 
