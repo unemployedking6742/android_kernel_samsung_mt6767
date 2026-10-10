@@ -27,11 +27,11 @@ print_msg "$RED" "       by poqdavid \n"
 
 ./clean_build.sh
 
-# ========================================
-# STEP 1: SAMSUNG SECURITY DISABLES (FRAGMENT)
-# ========================================
 print_msg "$GREEN" "Modifying configs..."
 
+# ========================================
+# SAMSUNG SECURITY DISABLES (FRAGMENT)
+# ========================================
 ./kernel-5.10/scripts/config --file kernel-5.10/arch/arm64/configs/a15_00_defconfig \
 --set-val UH n \
 --set-val RKP n \
@@ -62,7 +62,7 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val RKP_CRED n
 
 # ========================================
-# STEP 2: TELEMETRY / DEBUG DISABLES (FRAGMENT)
+# TELEMETRY / DEBUG DISABLES (FRAGMENT) — FIXED PREFIX
 # ========================================
 ./kernel-5.10/scripts/config --file kernel-5.10/arch/arm64/configs/a15_00_defconfig \
 --set-val SAMSUNG_PRODUCT_SHIP n \
@@ -94,7 +94,7 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val MTK_DBGTOP n
 
 # ========================================
-# STEP 3: KERNEL OPTIMIZATIONS (FRAGMENT)
+# KERNEL OPTIMIZATIONS + WERROR DISABLE (FRAGMENT)
 # ========================================
 ./kernel-5.10/scripts/config --file kernel-5.10/arch/arm64/configs/a15_00_defconfig \
 --set-val TMPFS_XATTR y \
@@ -103,7 +103,7 @@ print_msg "$GREEN" "Modifying configs..."
 --set-val NET_SCH_FQ y \
 --set-val TCP_CONG_BIC n \
 --set-val TCP_CONG_BBR n \
---set-val DEFAULT_BBR n
+--set-val DEFAULT_BBR n \
 --set-val WERROR n
 
 print_msg "$GREEN" "Modified configs ..."
@@ -111,26 +111,7 @@ print_msg "$GREEN" "Modified configs ..."
 cd kernel-5.10
 
 # ========================================
-# STEP 4: APPLY WILDKERNELS OPTIMIZATION PATCHES
-# ========================================
-print_msg "$GREEN" "Applying WildKernels patches..."
-
-PATCH_BASE="https://raw.githubusercontent.com/WildKernels/kernel_patches/main/common"
-
-for patch in \
-    increase_sk_mem_packets \
-    reduce_gc_thread_sleep_time \
-    reduce_freeze_timeout \
-    reduce_pci_pme_wakeups \
-    minimise_wakeup_time; do
-    curl -LSs "$PATCH_BASE/${patch}.patch" -o "/tmp/${patch}.patch"
-    patch -p1 -F 3 < "/tmp/${patch}.patch" || true
-done
-
-print_msg "$GREEN" "WildKernels patches applied."
-
-# ========================================
-# STEP 5: APPLY BBRV3 PATCH
+# APPLY BBRV3 PATCH
 # ========================================
 print_msg "$GREEN" "Applying BBRv3 patch..."
 
@@ -140,36 +121,7 @@ patch -p1 -F 3 < /tmp/bbrv3.patch || print_msg "$YELLOW" "BBRv3 patch failed or 
 print_msg "$GREEN" "BBRv3 patch applied."
 
 # ========================================
-# STEP 5.5: FIX MEDIATEK DRIVER ERRORS
-# ========================================
-print_msg "$GREEN" "Fixing MediaTek driver errors..."
-
-# --- Revert any bad #include <linux/aee.h> additions ---
-sed -i '/^#include <linux\/aee.h>$/d' "drivers/spmi/spmi-mtk-pmif-core.c" || true
-
-# --- ECCCI: strip -Werror from Makefiles ---
-find "drivers/misc/mediatek/eccci" -name "Makefile" -exec sed -i 's/ -Werror / /g' {} \; || true
-find "drivers/misc/mediatek/eccci" -name "Kbuild" -exec sed -i 's/ -Werror / /g' {} \; || true
-
-# --- ECCCI: patch all .c files for unused variables ---
-find "drivers/misc/mediatek/eccci" -name "*.c" -exec sed -i \
-    -e 's/void \*md_img_addr/void *md_img_addr __attribute__((unused))/g' \
-    -e 's/int md_img_len/int md_img_len __attribute__((unused))/g' \
-    {} \; || true
-
-# --- perf_freq_tracker.c: add missing slab.h header ---
-sed -i '1i #include <linux/slab.h>' "drivers/misc/mediatek/perf_common/perf_freq_tracker.c" || true
-
-print_msg "$GREEN" "MediaTek driver fixes applied."
-
-# --- Nuclear fallback: strip -Werror from entire kernel tree ---
-find "$(pwd)" -name "Makefile" -exec sed -i 's/ -Werror / /g' {} \; || true
-find "$(pwd)" -name "Kbuild" -exec sed -i 's/ -Werror / /g' {} \; || true
-
-print_msg "$GREEN" "Nuclear -Werror strip applied."
-
-# ========================================
-# STEP 6: SETUP KERNELSU-NEXT
+# SETUP KERNELSU-NEXT
 # ========================================
 print_msg "$GREEN" "Setting up KernelSU-Next..."
 
@@ -178,7 +130,7 @@ curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/ke
 print_msg "$GREEN" "KernelSU-Next setup complete."
 
 # ========================================
-# STEP 7: SETUP NOMOUNT
+# SETUP NOMOUNT
 # ========================================
 print_msg "$GREEN" "Setting up NoMount..."
 
@@ -187,7 +139,7 @@ curl -LSs "https://raw.githubusercontent.com/maxsteeel/nomount/refs/heads/dev/ke
 print_msg "$GREEN" "NoMount setup complete."
 
 # ========================================
-# STEP 8: GENERATE MERGED CONFIG
+# GENERATE MERGED CONFIG
 # ========================================
 print_msg "$GREEN" "Generating configs..."
 
@@ -196,7 +148,7 @@ python2 scripts/gen_build_config.py --kernel-defconfig a15_00_defconfig --kernel
 print_msg "$GREEN" "Finished Generating configs..."
 
 # ========================================
-# STEP 9: APPLY CHANGES TO THE MERGED .config
+# APPLY CHANGES TO THE MERGED .config
 # ========================================
 print_msg "$GREEN" "Applying final config overrides to merged .config..."
 
@@ -261,6 +213,7 @@ MERGED_CONFIG="../out/target/product/a15/obj/KERNEL_OBJ/.config"
 --set-val CAN n \
 --set-val BT_HIDP n \
 --set-val NOMOUNT y \
+--set-val WERROR n \
 --set-val TCP_CONG_BBR3 y \
 --set-val DEFAULT_BBR3 y \
 --set-str DEFAULT_TCP_CONG "bbr3" \
@@ -282,11 +235,6 @@ export CROSS_COMPILE_COMPAT="arm-linux-gnueabi-"
 export OUT_DIR="../out/target/product/a15/obj/KERNEL_OBJ"
 export DIST_DIR="../out/target/product/a15/obj/KERNEL_OBJ"
 export BUILD_CONFIG="../out/target/product/a15/obj/KERNEL_OBJ/build.config"
-
-# --- KCFLAGS: Make implicit declarations non-fatal ---
-export KCFLAGS="-Wno-error -Wno-error=implicit-function-declaration -Wno-error=implicit-int"
-export EXTRA_CFLAGS="$KCFLAGS"
-export CFLAGS="$KCFLAGS"
 
 print_msg "$GREEN" "Building Kernel..."
 
