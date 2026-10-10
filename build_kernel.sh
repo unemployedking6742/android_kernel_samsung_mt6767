@@ -147,6 +147,16 @@ patch -p1 -F 3 < /tmp/bbrv3.patch || print_msg "$YELLOW" "BBRv3 patch failed or 
 print_msg "$GREEN" "BBRv3 patch applied."
 
 # ========================================
+# STRIP -Werror FROM MEDIATEK ECCCI DRIVER
+# ========================================
+print_msg "$GREEN" "Stripping -Werror from MediaTek ECCCI..."
+
+find "drivers/misc/mediatek/eccci" -name "Makefile" -exec sed -i 's/ -Werror / /g' {} \; || true
+find "drivers/misc/mediatek/eccci" -name "Kbuild" -exec sed -i 's/ -Werror / /g' {} \; || true
+
+print_msg "$GREEN" "ECCCI -Werror stripped."
+
+# ========================================
 # STEP 6: SETUP KERNELSU-NEXT
 # ========================================
 print_msg "$GREEN" "Setting up KernelSU-Next..."
