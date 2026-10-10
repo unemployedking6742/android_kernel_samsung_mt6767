@@ -27,7 +27,23 @@ print_msg "$RED" "       by poqdavid \n"
 
 ./clean_build.sh
 
-print_msg "$GREEN" "Modifying configs..."
+# ========================================
+# HARD RESET KERNEL SOURCE
+# ========================================
+print_msg "$GREEN" "Hard-resetting kernel source..."
+
+cd kernel-5.10
+git restore . 2>/dev/null || true
+git clean -fdx 2>/dev/null || true
+cd ..
+
+# Also clean the output directory
+rm -rf out
+
+# Also clean KernelSU/NoMount directories if they exist
+rm -rf kernel-5.10/KernelSU kernel-5.10/KernelSU-Next kernel-5.10/NoMount kernel-5.10/Baseband-guard
+
+print_msg "$GREEN" "Hard reset complete."
 
 # ========================================
 # SAMSUNG SECURITY DISABLES (FRAGMENT)
